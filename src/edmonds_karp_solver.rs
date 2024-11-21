@@ -52,35 +52,6 @@ impl EdmondsKarp {
         false
     }
 
-    /// Compute the maximum flow using the Edmonds-Karp algorithm
-    pub fn max_flow_old(&mut self, source: usize, sink: usize) -> i32 {
-        let mut max_flow = 0;
-        let mut parent = HashMap::new();
-
-        while self.bfs(source, sink, &mut parent) {
-            let mut path_flow = i32::MAX;
-            let mut current = sink;
-
-            while current != source {
-                let prev = parent[&current];
-                path_flow = path_flow.min(*self.residual.get(&(prev, current)).unwrap());
-                current = prev;
-            }
-
-            current = sink;
-            while current != source {
-                let prev = parent[&current];
-                *self.residual.get_mut(&(prev, current)).unwrap() -= path_flow;
-                *self.residual.get_mut(&(current, prev)).unwrap() += path_flow;
-                current = prev;
-            }
-
-            max_flow += path_flow;
-        }
-
-        max_flow
-    }
-
     pub fn max_flow(&mut self, source: usize, sink: usize) -> i32 {
         let mut max_flow = 0;
         let mut parent = HashMap::new();
