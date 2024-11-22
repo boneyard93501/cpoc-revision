@@ -212,5 +212,6 @@ impl Air for VerifierAir {
 }
 ```
 
-
 ## Summary
+
+We presented a credible alternative to RandomX that entails generating and solving network flow problems. We illustrate that the network flow problem, when properly constrained with respect graph size and density, falls into the intersection of CPU-friendly and GPU-unfriendly deemed desirable for cPoC. Moreover, we introduce the Edmonds-Karp solver algorithm (supposedly) for small-to-midsize network flow graphs, illustrate its use of memory (RAM) requirements and demonstrate the comparative efficiency of a (general verifier). The latter insight is deemed important as the verifier can be used as the proof generator including proofs in zero knowledge. WE further demonstrate this approach with (pseudo-coded) zk-STARK trace table and AIR constraint designs and implementations.
