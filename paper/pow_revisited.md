@@ -80,7 +80,11 @@ If i didn't mess up my quadratic solving, we require about 46,300 vertices for 2
 
 Overall, NFP and the Edmonds-Karp algorithm look like suitabkle candidates for a PoW solution for our cPoC. Of course, the seeding can be similar to the RandomX parameterization and we may retain a particular graph structure for an extended period of blocks and use a just a small jitter per (hashing) iteration to change flow value(s) between calculations.
 
-## Proving In Zero Knowledge
+#### Performance Considerations
+
+We implemented [benches](./../benches/nfp_bench.rs) for 1,000, 10,000 and 100,000 vertices 
+
+#### Proving In Zero Knowledge
 
 Given a solution to the NFP problem, we cna use the result and the much more efficient verifier to implement a proof in zero knowledge. For illustrative purposes, wee examine a zk-STARK implementation for both the trace table and constraints. See Table 1.
 
@@ -96,9 +100,9 @@ Table 1: Stylized Trace Table Structure
 | `node_balance`        | Net balance of each node (\( \text{inflow} - \text{outflow} \)). |
 | `cumulative_flow`     | Tracks cumulative flow from the source to validate the solution. |
 
-For the corresponding interface, see Figure :
+For the corresponding interface, see Figure 1:
 
-Figure : Trace Table Interface
+Figure 1: Trace Table Interface
 
 ```Rust
 pub struct VerifierTrace {
@@ -114,7 +118,7 @@ pub struct VerifierTrace {
 
 Based on the [test data](./../src/verifier.rs), we can populate the trace table, see Table 2.
 
-Table 2: Poulated Trace Table Corresponding To `verifier.rs` Tests
+Table 2: Populated Trace Table Corresponding To `verifier.rs` Tests
 
  Step | edge_source | edge_target | initial_capacity | residual_capacity | flow | node_balance | cumulative_flow |
 |------|-------------|-------------|-------------------|-------------------|------|--------------|-----------------|
@@ -126,9 +130,9 @@ Table 2: Poulated Trace Table Corresponding To `verifier.rs` Tests
 | 1    | 3           | 5           | 20                | 16                | 4    | 4            | 16              |
 
 
-See Figure for the verifier trace pseudo-code.
+See Figure 2 for the verifier trace pseudo-code.
 
-Figure: Verifier Trace Pseudocode
+Figure 2: Verifier Trace Pseudocode
 
 ```Rust
 impl VerifierTrace {
@@ -175,9 +179,9 @@ impl VerifierTrace {
 }
 ```
 
-The next step is to implement the AIR constraints. See Figure :
+The next step is to implement the AIR constraints. See Figure 3:
 
-Figure : AIR Constraints Pseudocode
+Figure 3: AIR Constraints Pseudocode
 
 ```Rust
 pub struct VerifierAir {
@@ -214,4 +218,4 @@ impl Air for VerifierAir {
 
 ## Summary
 
-We presented a credible alternative to RandomX that entails generating and solving network flow problems. We illustrate that the network flow problem, when properly constrained with respect graph size and density, falls into the intersection of CPU-friendly and GPU-unfriendly deemed desirable for cPoC. Moreover, we introduce the Edmonds-Karp solver algorithm (supposedly) for small-to-midsize network flow graphs, illustrate its use of memory (RAM) requirements and demonstrate the comparative efficiency of a (general verifier). The latter insight is deemed important as the verifier can be used as the proof generator including proofs in zero knowledge. WE further demonstrate this approach with (pseudo-coded) zk-STARK trace table and AIR constraint designs and implementations.
+We presented a credible alternative to RandomX that entails generating and solving network flow problems. We illustrate that the network flow problem, when properly constrained with respect graph size and density, falls into the intersection of CPU-friendly and GPU-unfriendly deemed desirable for cPoC. Moreover, we introduce the Edmonds-Karp solver algorithm (supposedly) for small-to-midsize network flow graphs, illustrate its use of memory (RAM) requirements and demonstrate the comparative efficiency of a (general verifier). The latter insight is deemed important as the verifier can be used as the proof generator including proofs in zero knowledge. WE further demonstrate this approach with (pseudo-coded) zk-STARK trace table and AIR constraint designs and implementations. 
