@@ -81,8 +81,8 @@ impl EdmondsKarp {
             max_flow += path_flow;
     
             // Debug: Log residual graph after each augmenting path
-            eprintln!("Augmenting path added with flow: {}", path_flow);
-            eprintln!("Residual capacities: {:?}", self.residual);
+            // eprintln!("Augmenting path added with flow: {}", path_flow);
+            // eprintln!("Residual capacities: {:?}", self.residual);
         }
     
         max_flow

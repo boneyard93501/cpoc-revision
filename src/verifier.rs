@@ -33,9 +33,9 @@ pub fn verify_max_flow(ek: &EdmondsKarp, source: usize, sink: usize, expected_fl
         }
     }
 
-    eprintln!("Flow balances: {:?}", flow_balance);
-    eprintln!("Source outflow: {}", source_outflow);
-    eprintln!("Sink inflow: {}", sink_inflow);
+    //eprintln!("Flow balances: {:?}", flow_balance);
+    //eprintln!("Source outflow: {}", source_outflow);
+    //eprintln!("Sink inflow: {}", sink_inflow);
 
     // Verify source and sink flows
     if source_outflow != expected_flow {
