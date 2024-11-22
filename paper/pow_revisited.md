@@ -75,14 +75,42 @@ Assuming we are implementing the Edmonds-Karp algorithm using an adjacency list,
 * verifier memory requirements:
     * $\text{Memory} = O(100,000) \approx 400 KB$
 
-If i didn't mess up my quadratic solving, we require about 46,300 vertices for 2GB or memory and about 65,500 vertices for 4 GB of memory. The respective verifier requirements are approx. 185KB and 262 KB, respectively.
+If I didn't mess up my quadratic solving, we require about: 
 
+* 46,300 vertices for 2GB of memory and about 
+* 65,500 vertices for 4 GB of memory
 
-Overall, NFP and the Edmonds-Karp algorithm look like suitabkle candidates for a PoW solution for our cPoC. Of course, the seeding can be similar to the RandomX parameterization and we may retain a particular graph structure for an extended period of blocks and use a just a small jitter per (hashing) iteration to change flow value(s) between calculations.
+Given both the total graph size the inherent time complexity of the problem, it is not possible to utilize graph size to consume larger memory allocations. However, we can generate a large set, say 4 GB, of flow parameters and match the lifetime of that data set to the lifetime of the graph. We generate and sample from the data set using seekable PRNG making it very lightweight to verify the solution and solution inputs.
 
 #### Performance Considerations
 
-We implemented [benches](./../benches/nfp_bench.rs) for 1,000, 10,000 and 100,000 vertices 
+We implemented [benches](./../benches/nfp_bench.rs) for 1,000 and 1,500 vertices, respectively, four bte integers and 25% density. See Figure 1.
+
+Figure 1: Benches for Edmonds-Karp
+
+```bash
+Edmonds-Karp: 1,000 vertices
+                        time:   [297.84 ms 303.13 ms 310.66 ms]
+Found 2 outliers among 20 measurements (10.00%)
+  1 (5.00%) high mild
+  1 (5.00%) high severe
+
+Benchmarking Edmonds-Karp: 1,500 vertices: Warming up for 3.0000 s
+Warning: Unable to complete 20 samples in 5.0s. You may wish to increase target time to 13.5s, or reduce sample count to 10.
+Edmonds-Karp: 1,500 vertices
+                        time:   [653.23 ms 658.87 ms 666.17 ms]
+Found 3 outliers among 20 measurements (15.00%)
+  2 (10.00%) high mild
+  1 (5.00%) high severe
+
+```
+
+The performance seems quite suitable for subsequent hashing and applying the usual difficulty assessment to determine solution eligibility, aka golden hashes. As we can directly impact the graph configuration, it is very easy to change the program while undermining FPGA and ASIC solutions.
+
+
+>[!Note]
+> I've been struggling with the verifier a bit and while the tests are working, there's still a problem with bigger graphs. Hence, i commented it out in benches and need to get back to it.
+
 
 #### Proving In Zero Knowledge
 
@@ -100,9 +128,9 @@ Table 1: Stylized Trace Table Structure
 | `node_balance`        | Net balance of each node (\( \text{inflow} - \text{outflow} \)). |
 | `cumulative_flow`     | Tracks cumulative flow from the source to validate the solution. |
 
-For the corresponding interface, see Figure 1:
+For the corresponding interface, see Figure 2:
 
-Figure 1: Trace Table Interface
+Figure 2: Trace Table Interface
 
 ```Rust
 pub struct VerifierTrace {
@@ -130,9 +158,9 @@ Table 2: Populated Trace Table Corresponding To `verifier.rs` Tests
 | 1    | 3           | 5           | 20                | 16                | 4    | 4            | 16              |
 
 
-See Figure 2 for the verifier trace pseudo-code.
+See Figure 3 for the verifier trace pseudo-code.
 
-Figure 2: Verifier Trace Pseudocode
+Figure 3: Verifier Trace Pseudocode
 
 ```Rust
 impl VerifierTrace {
@@ -179,9 +207,9 @@ impl VerifierTrace {
 }
 ```
 
-The next step is to implement the AIR constraints. See Figure 3:
+The next step is to implement the AIR constraints. See Figure 4:
 
-Figure 3: AIR Constraints Pseudocode
+Figure 4: AIR Constraints Pseudocode
 
 ```Rust
 pub struct VerifierAir {
@@ -218,4 +246,6 @@ impl Air for VerifierAir {
 
 ## Summary
 
-We presented a credible alternative to RandomX that entails generating and solving network flow problems. We illustrate that the network flow problem, when properly constrained with respect graph size and density, falls into the intersection of CPU-friendly and GPU-unfriendly deemed desirable for cPoC. Moreover, we introduce the Edmonds-Karp solver algorithm (supposedly) for small-to-midsize network flow graphs, illustrate its use of memory (RAM) requirements and demonstrate the comparative efficiency of a (general verifier). The latter insight is deemed important as the verifier can be used as the proof generator including proofs in zero knowledge. WE further demonstrate this approach with (pseudo-coded) zk-STARK trace table and AIR constraint designs and implementations. 
+We presented a credible alternative to RandomX that entails generating and solving network flow problems. We illustrate that the network flow problem, when properly constrained with respect graph size and density, falls into the intersection of CPU-friendly and GPU-unfriendly deemed desirable for cPoC. Moreover, we introduce the Edmonds-Karp solver algorithm (supposedly) for small-to-midsize network flow graphs and demonstrate the comparative efficiency of a (general verifier). The latter insight is deemed important as the verifier can be used as the proof generator including proofs in zero knowledge. We further demonstrate this approach with (pseudo-coded) zk-STARK trace table and AIR constraint designs and implementations.
+
+If we want to retain the memory proving requirement, we can force the creation of a per-peer data set for flow parameter sampling, where the lifetime of the data set can be coupled to the lifetime of the graph structure not unlike how RandomX works.
