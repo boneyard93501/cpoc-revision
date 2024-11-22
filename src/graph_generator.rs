@@ -1,11 +1,9 @@
 use petgraph::graph::{DiGraph, NodeIndex};
 use rand::{ Rng, SeedableRng };
 
-/// GraphConfig for generating random directed graphs
 #[derive(Debug)]
 pub struct GraphConfig {
     pub num_nodes: usize,
-    pub edge_prob: f64,
     pub capacity_range: (u32, u32),
     pub random_seed: u64,
     pub density: f64,
@@ -15,18 +13,15 @@ impl GraphConfig {
     /// Create a new GraphConfig instance
     pub fn new(
         num_nodes: usize,
-        edge_prob: f64,
         capacity_range: (u32, u32),
         random_seed: u64,
         density: f64,
     ) -> Self {
-        assert!((0.0..=1.0).contains(&edge_prob), "edge_prob must be in [0.0, 1.0]");
         assert!((0.0..=1.0).contains(&density), "density must be in [0.0, 1.0]");
         assert!(capacity_range.0 <= capacity_range.1, "Invalid capacity range");
 
         Self {
             num_nodes,
-            edge_prob,
             capacity_range,
             random_seed,
             density,
@@ -68,8 +63,8 @@ mod tests {
     fn test_graph_generation_reproducibility() {
         let seed = 42;
         let density = 0.5;
-        let config1 = GraphConfig::new(5, 0.8, (1, 10), seed, density);
-        let config2 = GraphConfig::new(5, 0.8, (1, 10), seed, density);
+        let config1 = GraphConfig::new(5, (1, 10), seed, density);
+        let config2 = GraphConfig::new(5, (1, 10), seed, density);
 
         let graph1 = config1.create_random_flow_graph();
         let graph2 = config2.create_random_flow_graph();
@@ -85,7 +80,7 @@ mod tests {
     fn test_graph_node_and_edge_counts() {
         let seed = 42;
         let density = 0.3; // Expect ~30% of possible edges
-        let config = GraphConfig::new(6, 0.5, (1, 20), seed, density);
+        let config = GraphConfig::new(6, (1, 20), seed, density);
         let graph = config.create_random_flow_graph();
 
         assert_eq!(graph.node_count(), 6);
@@ -101,7 +96,7 @@ mod tests {
     fn test_empty_graph_generation() {
         let seed = 42;
         let density = 0.0; // No edges
-        let config = GraphConfig::new(4, 0.8, (1, 10), seed, density);
+        let config = GraphConfig::new(4, (1, 10), seed, density);
         let graph = config.create_random_flow_graph();
 
         assert_eq!(graph.node_count(), 4);
@@ -112,7 +107,7 @@ mod tests {
     fn test_fully_connected_graph_generation() {
         let seed = 42;
         let density = 1.0; // Fully connected
-        let config = GraphConfig::new(4, 0.8, (1, 10), seed, density);
+        let config = GraphConfig::new(4, (1, 10), seed, density);
         let graph = config.create_random_flow_graph();
 
         let total_possible_edges = 4 * (4 - 1); // Directed graph
@@ -124,7 +119,7 @@ mod tests {
     fn test_single_node_graph() {
         let seed = 42;
         let density = 1.0; // Density does not matter with a single node
-        let config = GraphConfig::new(1, 0.8, (1, 10), seed, density);
+        let config = GraphConfig::new(1, (1, 10), seed, density);
         let graph = config.create_random_flow_graph();
 
         assert_eq!(graph.node_count(), 1);
@@ -132,17 +127,10 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "edge_prob must be in [0.0, 1.0]")]
-    fn test_invalid_edge_probability() {
-        let seed = 42;
-        GraphConfig::new(5, 1.5, (1, 10), seed, 0.5); // Invalid edge probability
-    }
-
-    #[test]
     #[should_panic(expected = "density must be in [0.0, 1.0]")]
     fn test_invalid_density() {
         let seed = 42;
-        GraphConfig::new(5, 0.8, (1, 10), seed, 1.2); // Invalid density
+        GraphConfig::new(5, (1, 10), seed, 1.2); // Invalid density
     }
 
     #[test]
@@ -151,7 +139,7 @@ mod tests {
         let densities = [0.1, 0.25, 0.75, 0.9]; // Test a variety of densities
 
         for &density in &densities {
-            let config = GraphConfig::new(5, 0.8, (1, 10), seed, density);
+            let config = GraphConfig::new(5, (1, 10), seed, density);
             let graph = config.create_random_flow_graph();
 
             let total_possible_edges = 5 * (5 - 1);
@@ -167,7 +155,7 @@ mod tests {
     fn test_large_graph() {
         let seed = 42;
         let density = 0.05; // Sparse graph
-        let config = GraphConfig::new(1000, 0.5, (1, 10), seed, density);
+        let config = GraphConfig::new(1000, (1, 10), seed, density);
         let graph = config.create_random_flow_graph();
 
         assert_eq!(graph.node_count(), 1000);

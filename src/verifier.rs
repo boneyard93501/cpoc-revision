@@ -1,31 +1,36 @@
 use crate::edmonds_karp_solver::EdmondsKarp;
 use std::collections::HashMap;
 
-pub fn verify_max_flow(ek: &EdmondsKarp, source: usize, sink: usize, expected_flow: i32) -> bool {
+pub fn verify_max_flow(
+    ek: &EdmondsKarp,
+    source: usize,
+    sink: usize,
+    expected_flow: i32,
+) -> bool {
     let mut flow_balance: HashMap<usize, i32> = HashMap::new();
     let mut source_outflow = 0;
     let mut sink_inflow = 0;
 
-    // Traverse residual graph once to calculate flow balances and source/sink flows
+    // Traverse the residual graph to calculate flow balances
     for (&(from, to), &residual_capacity) in &ek.residual {
-        if let Some(initial_capacity) = ek.graph.get(&from)
+        if let Some(initial_capacity) = ek
+            .graph
+            .get(&from)
             .and_then(|edges| edges.iter().find(|&&(target, _)| target == to))
-            .map(|&(_, capacity)| capacity) 
+            .map(|&(_, capacity)| capacity)
         {
-            // Calculate the flow as the difference between initial and residual capacities
+            // Flow is the difference between initial and residual capacities
             let flow = initial_capacity - residual_capacity;
 
             if flow > 0 {
-                // Forward flow
+                // Update flow balance for nodes
                 *flow_balance.entry(from).or_insert(0) -= flow;
                 *flow_balance.entry(to).or_insert(0) += flow;
 
-                // Track source outflow
+                // Track source outflow and sink inflow
                 if from == source {
                     source_outflow += flow;
                 }
-
-                // Track sink inflow
                 if to == sink {
                     sink_inflow += flow;
                 }
@@ -33,11 +38,12 @@ pub fn verify_max_flow(ek: &EdmondsKarp, source: usize, sink: usize, expected_fl
         }
     }
 
+    // Debug output (can be removed in production)
     //eprintln!("Flow balances: {:?}", flow_balance);
     //eprintln!("Source outflow: {}", source_outflow);
     //eprintln!("Sink inflow: {}", sink_inflow);
 
-    // Verify source and sink flows
+    // Verify source and sink flow match the expected max flow
     if source_outflow != expected_flow {
         eprintln!(
             "Source flow mismatch: {} != {}",
@@ -54,7 +60,7 @@ pub fn verify_max_flow(ek: &EdmondsKarp, source: usize, sink: usize, expected_fl
         return false;
     }
 
-    // Verify flow conservation for intermediate nodes
+    // Verify flow conservation at intermediate nodes
     for (&node, &balance) in &flow_balance {
         if node != source && node != sink && balance != 0 {
             eprintln!(
@@ -67,9 +73,6 @@ pub fn verify_max_flow(ek: &EdmondsKarp, source: usize, sink: usize, expected_fl
 
     true
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
@@ -87,11 +90,11 @@ mod tests {
         ek.add_edge(3, 5, 20);
         ek.add_edge(4, 3, 7);
         ek.add_edge(4, 5, 4);
-    
+
         // Compute max flow
         let max_flow = ek.max_flow(0, 5);
         assert_eq!(max_flow, 23);
-    
+
         // Verify the flow
         assert!(verify_max_flow(&ek, 0, 5, max_flow));
     }
