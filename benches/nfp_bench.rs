@@ -47,13 +47,13 @@ fn bench_verifier(c: &mut Criterion) {
 }
 */
 
-fn bench_10k(c: &mut Criterion) {
-    let config = GraphConfig::new(10_000, (1, 100), RAND_SEED, DENSITY); 
+fn bench_46k(c: &mut Criterion) {
+    let config = GraphConfig::new(46_300, (1, 100), RAND_SEED, DENSITY); 
     let graph = config.create_random_flow_graph();
     let source = 0;
     let sink = 9999;
 
-    c.bench_function("Edmonds-Karp: 10,000 vertices", |b| {
+    c.bench_function("Edmonds-Karp: 46,300 vertices", |b| {
         b.iter(|| {
             let mut ek = EdmondsKarp::new();
             for edge in graph.edge_references() {
@@ -65,13 +65,13 @@ fn bench_10k(c: &mut Criterion) {
     });
 }
 
-fn bench_100k(c: &mut Criterion) {
-    let config = GraphConfig::new(100_000, (1, 100), RAND_SEED, DENSITY); 
+fn bench_65k(c: &mut Criterion) {
+    let config = GraphConfig::new(65_500, (1, 100), RAND_SEED, DENSITY); 
     let graph = config.create_random_flow_graph();
     let source = 0;
     let sink = 9999;
 
-    c.bench_function("Edmonds-Karp: 10,000 vertices", |b| {
+    c.bench_function("Edmonds-Karp: 65,500 vertices", |b| {
         b.iter(|| {
             let mut ek = EdmondsKarp::new();
             for edge in graph.edge_references() {
@@ -83,6 +83,15 @@ fn bench_100k(c: &mut Criterion) {
     });
 }
 
+
+fn custom_criterion() -> Criterion {
+    Criterion::default()
+        .sample_size(10)
+}
 // criterion_group!(benches, bench_edmonds_karp, bench_verifier, bench_large_graph);
-criterion_group!(benches, bench_1k, bench_10k, bench_100k);
+criterion_group! {
+    name = benches;
+    config = custom_criterion();
+    targets = bench_1k, bench_46k, bench_65k
+}
 criterion_main!(benches);
