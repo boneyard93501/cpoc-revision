@@ -76,7 +76,6 @@ mod tests {
 
         assert_eq!(graph1.node_count(), graph2.node_count());
         assert_eq!(graph1.edge_count(), graph2.edge_count());
-        // Verify that the edges themselves are identical
         for edge in graph1.edge_references() {
             assert!(graph2.contains_edge(edge.source(), edge.target()));
         }
@@ -119,5 +118,64 @@ mod tests {
         let total_possible_edges = 4 * (4 - 1); // Directed graph
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), total_possible_edges); // Fully connected graph
+    }
+
+    #[test]
+    fn test_single_node_graph() {
+        let seed = 42;
+        let density = 1.0; // Density does not matter with a single node
+        let config = GraphConfig::new(1, 0.8, (1, 10), seed, density);
+        let graph = config.create_random_flow_graph();
+
+        assert_eq!(graph.node_count(), 1);
+        assert_eq!(graph.edge_count(), 0); // A single node cannot have edges
+    }
+
+    #[test]
+    #[should_panic(expected = "edge_prob must be in [0.0, 1.0]")]
+    fn test_invalid_edge_probability() {
+        let seed = 42;
+        GraphConfig::new(5, 1.5, (1, 10), seed, 0.5); // Invalid edge probability
+    }
+
+    #[test]
+    #[should_panic(expected = "density must be in [0.0, 1.0]")]
+    fn test_invalid_density() {
+        let seed = 42;
+        GraphConfig::new(5, 0.8, (1, 10), seed, 1.2); // Invalid density
+    }
+
+    #[test]
+    fn test_random_density_configurations() {
+        let seed = 42;
+        let densities = [0.1, 0.25, 0.75, 0.9]; // Test a variety of densities
+
+        for &density in &densities {
+            let config = GraphConfig::new(5, 0.8, (1, 10), seed, density);
+            let graph = config.create_random_flow_graph();
+
+            let total_possible_edges = 5 * (5 - 1);
+            let expected_edges = (total_possible_edges as f64 * density).round() as usize;
+
+            assert_eq!(graph.node_count(), 5);
+            assert!(graph.edge_count() <= total_possible_edges);
+            assert_eq!(graph.edge_count(), expected_edges);
+        }
+    }
+
+    #[test]
+    fn test_large_graph() {
+        let seed = 42;
+        let density = 0.05; // Sparse graph
+        let config = GraphConfig::new(1000, 0.5, (1, 10), seed, density);
+        let graph = config.create_random_flow_graph();
+
+        assert_eq!(graph.node_count(), 1000);
+        let total_possible_edges = 1000 * (1000 - 1);
+        let expected_edges = (total_possible_edges as f64 * density).round() as usize;
+
+        assert!(graph.edge_count() > 0); // Ensure at least some edges are created
+        assert!(graph.edge_count() <= total_possible_edges); // Should not exceed possible edges
+        assert_eq!(graph.edge_count(), expected_edges); // Matches expected density
     }
 }
